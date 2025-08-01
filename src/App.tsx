@@ -64,6 +64,9 @@ function App() {
   const [recordingDuration, setRecordingDuration] = useState(0);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Messages scroll ref
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
   // Initialize services
   useEffect(() => {
     initializeServices();
@@ -71,6 +74,11 @@ function App() {
       cleanup();
     };
   }, []);
+
+  // Auto scroll to bottom when new message is added
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   // Recording timer effect
   useEffect(() => {
@@ -93,6 +101,10 @@ function App() {
       }
     };
   }, [isRecording]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -281,8 +293,18 @@ function App() {
       timestamp: new Date(),
       audioData
     };
-    setMessages(prev => [message, ...prev]);
+    // En yeni mesajları sona ekle (düzgün kronolojik sıra)
+    setMessages(prev => [...prev, message]);
   };
+
+  // Hide initial loader when React app is ready
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      document.body.classList.add('app-loaded');
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const cleanup = () => {
     addLog('🧹 Temizlik yapılıyor...');
@@ -299,47 +321,77 @@ function App() {
     return 'error';
   };
 
+  // Show minimal loading if not initialized
   if (!isInitialized) {
     return (
       <Container maxWidth="md" sx={{ mt: 4, textAlign: 'center' }}>
-        <CircularProgress size={60} />
-        <Typography variant="h6" sx={{ mt: 2 }}>
-          Uygulama başlatılıyor...
-        </Typography>
+        <Box sx={{ py: 4 }}>
+          <CircularProgress size={40} />
+          <Typography variant="body1" sx={{ mt: 2, color: 'text.secondary' }}>
+            Servisler hazırlanıyor...
+          </Typography>
+        </Box>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="md" className="app-container">
-      <Paper elevation={3} sx={{ p: 3, mt: 2 }}>
+    <Container maxWidth="md" className="app-container" sx={{ py: 2 }}>
+      <Paper elevation={3} sx={{ p: 3, borderRadius: 2, bgcolor: 'background.paper' }}>
         {/* Header */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h4" component="h1">
-            🎙️ Sesli Chat AI
-          </Typography>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Box>
-            <IconButton onClick={() => setShowDebug(!showDebug)} color="primary">
+            <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
+              🎙️ Sesli Chat AI
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Yapay zeka ile sesli sohbet deneyimi
+            </Typography>
+          </Box>
+          <Box>
+            <IconButton 
+              onClick={() => setShowDebug(!showDebug)} 
+              color="primary"
+              size="small"
+              title="Debug loglarını göster/gizle"
+            >
               <BugReport />
             </IconButton>
-            <IconButton onClick={() => window.location.reload()} color="primary">
+            <IconButton 
+              onClick={() => window.location.reload()} 
+              color="primary"
+              size="small"
+              title="Sayfayı yenile"
+            >
               <Refresh />
             </IconButton>
           </Box>
         </Box>
 
         {/* Connection Status */}
-        <Box mb={2}>
-          <Chip
-            label={currentStatus}
-            color={getConnectionColor()}
-            icon={isConnected ? <VolumeUp /> : <Settings />}
-            sx={{ mr: 1 }}
-          />
-          {!isConnected && (
-            <Button variant="outlined" size="small" onClick={connectWebSocket}>
-              Bağlan
-            </Button>
+        <Box mb={3}>
+          <Box display="flex" alignItems="center" gap={1} mb={1}>
+            <Chip
+              label={currentStatus}
+              color={getConnectionColor()}
+              icon={isConnected ? <VolumeUp /> : <Settings />}
+              size="medium"
+            />
+            {!isConnected && (
+              <Button 
+                variant="outlined" 
+                size="small" 
+                onClick={connectWebSocket}
+                sx={{ ml: 1 }}
+              >
+                Bağlan
+              </Button>
+            )}
+          </Box>
+          {isConnected && (
+            <Typography variant="caption" color="success.main">
+              ✅ Sunucuya bağlı - Konuşmaya hazır
+            </Typography>
           )}
         </Box>
 
@@ -351,7 +403,7 @@ function App() {
         )}
 
         {/* Recording Button */}
-        <Box display="flex" justifyContent="center" mb={3}>
+        <Box display="flex" justifyContent="center" mb={4}>
           <Box textAlign="center">
             <Fab
               color={isRecording ? "secondary" : "primary"}
@@ -359,43 +411,53 @@ function App() {
               onClick={handleRecordingToggle}
               disabled={isLoading}
               sx={{ 
-                mb: 1,
+                mb: 2,
+                width: 80,
+                height: 80,
                 ...(isRecording && {
                   animation: 'pulse 1.5s infinite',
                   '@keyframes pulse': {
                     '0%': { transform: 'scale(1)', opacity: 1 },
-                    '50%': { transform: 'scale(1.1)', opacity: 0.8 },
+                    '50%': { transform: 'scale(1.05)', opacity: 0.9 },
                     '100%': { transform: 'scale(1)', opacity: 1 }
                   }
                 })
               }}
             >
               {isLoading ? (
-                <CircularProgress size={24} />
+                <CircularProgress size={32} color="inherit" />
               ) : isRecording ? (
-                <MicOff />
+                <MicOff fontSize="large" />
               ) : (
-                <Mic />
+                <Mic fontSize="large" />
               )}
             </Fab>
             
             {isRecording && (
               <Box>
-                <Typography variant="h6" color="secondary" sx={{ fontWeight: 'bold' }}>
+                <Typography variant="h5" color="secondary" sx={{ fontWeight: 'bold' }}>
                   {recordingDuration}s
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
-                  Kayıt ediliyor...
+                  🔴 Kayıt ediliyor...
+                </Typography>
+              </Box>
+            )}
+            
+            {isLoading && !isRecording && (
+              <Box>
+                <Typography variant="body1" color="primary">
+                  İşleniyor...
                 </Typography>
               </Box>
             )}
           </Box>
         </Box>
 
-        <Typography variant="body2" align="center" color="textSecondary" mb={2}>
+        <Typography variant="body2" align="center" color="textSecondary" mb={3}>
           {isRecording 
-            ? `Konuşmayı bitirmek için tekrar tıklayın (${recordingDuration}s)` 
-            : 'Konuşmaya başlamak için tıklayın (en az 2 saniye)'
+            ? `🎙️ Konuşmayı bitirmek için tekrar tıklayın (${recordingDuration}s)` 
+            : '🎤 Konuşmaya başlamak için tıklayın (en az 2 saniye konuşun)'
           }
         </Typography>
 
@@ -427,43 +489,92 @@ function App() {
         </Card>
 
         {/* Messages */}
-        <Card sx={{ mb: 2 }}>
+        <Card sx={{ mb: 3, borderRadius: 2 }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               💬 Konuşma Geçmişi
+              {messages.length > 0 && (
+                <Chip 
+                  label={`${messages.length} mesaj`} 
+                  size="small" 
+                  color="primary" 
+                  variant="outlined" 
+                />
+              )}
             </Typography>
             {messages.length === 0 ? (
-              <Typography color="textSecondary" align="center" sx={{ py: 2 }}>
-                Henüz mesaj yok. Konuşmaya başlayın!
-              </Typography>
+              <Box textAlign="center" py={4}>
+                <Typography variant="h6" color="textSecondary" gutterBottom>
+                  👋 Henüz konuşma yok
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Mikrofon butonuna tıklayarak konuşmaya başlayın veya aşağıdaki test alanını kullanın
+                </Typography>
+              </Box>
             ) : (
-              <List sx={{ maxHeight: 300, overflow: 'auto' }}>
-                {messages.map((message, index) => (
-                  <React.Fragment key={message.id}>
-                    <ListItem alignItems="flex-start">
-                      <ListItemText
-                        primary={
-                          <Box display="flex" alignItems="center" gap={1}>
-                            <Typography
-                              component="span"
-                              variant="body2"
-                              color={message.type === 'user' ? 'primary' : 'secondary'}
-                              fontWeight="bold"
+              <Box sx={{ 
+                maxHeight: 400, 
+                overflow: 'auto', 
+                border: '1px solid', 
+                borderColor: 'divider',
+                borderRadius: 1,
+                bgcolor: 'grey.50'
+              }}>
+                <List sx={{ p: 0 }}>
+                  {messages.map((message, index) => (
+                    <React.Fragment key={message.id}>
+                      <ListItem 
+                        alignItems="flex-start" 
+                        sx={{ 
+                          py: 2, 
+                          px: 2,
+                          bgcolor: message.type === 'user' ? 'primary.light' : 'secondary.light',
+                          '&:hover': {
+                            bgcolor: message.type === 'user' ? 'primary.main' : 'secondary.main',
+                            '& .MuiTypography-root': { color: 'white' }
+                          }
+                        }}
+                      >
+                        <ListItemText
+                          primary={
+                            <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+                              <Typography
+                                component="span"
+                                variant="body2"
+                                sx={{ 
+                                  fontWeight: 'bold',
+                                  color: message.type === 'user' ? 'primary.dark' : 'secondary.dark'
+                                }}
+                              >
+                                {message.type === 'user' ? '👤 Sen' : '🤖 AI'}
+                              </Typography>
+                              <Typography variant="caption" color="textSecondary">
+                                {message.timestamp.toLocaleTimeString('tr-TR')}
+                              </Typography>
+                            </Box>
+                          }
+                          secondary={
+                            <Typography 
+                              variant="body1" 
+                              component="div" 
+                              sx={{ 
+                                mt: 0.5,
+                                color: 'text.primary',
+                                lineHeight: 1.5
+                              }}
                             >
-                              {message.type === 'user' ? '👤 Sen' : '🤖 AI'}
+                              {message.text}
                             </Typography>
-                            <Typography variant="caption" color="textSecondary">
-                              {message.timestamp.toLocaleTimeString()}
-                            </Typography>
-                          </Box>
-                        }
-                        secondary={message.text}
-                      />
-                    </ListItem>
-                    {index < messages.length - 1 && <Divider />}
-                  </React.Fragment>
-                ))}
-              </List>
+                          }
+                        />
+                      </ListItem>
+                      {index < messages.length - 1 && <Divider />}
+                    </React.Fragment>
+                  ))}
+                  {/* Auto scroll anchor */}
+                  <div ref={messagesEndRef} />
+                </List>
+              </Box>
             )}
           </CardContent>
         </Card>

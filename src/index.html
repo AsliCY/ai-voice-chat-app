@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="AI destekli sesli sohbet uygulaması. Deepgram, Google Gemini ve ElevenLabs teknolojileri ile gerçek zamanlı konuşma deneyimi." />
+  <meta name="keywords" content="sesli chat, AI, yapay zeka, speech to text, text to speech, voice chat, Deepgram, Gemini, ElevenLabs" />
+  <meta name="author" content="Voice Chat App" />
+  
+  <!-- Open Graph Meta Tags (Social Media) -->
+  <meta property="og:title" content="🎙️ Sesli Chat AI - Yapay Zeka ile Konuş" />
+  <meta property="og:description" content="AI destekli sesli sohbet uygulaması ile gerçek zamanlı konuşma deneyimi yaşayın." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="%PUBLIC_URL%" />
+  <meta property="og:image" content="%PUBLIC_URL%/og-image.png" />
+  <meta property="og:locale" content="tr_TR" />
+  
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="🎙️ Sesli Chat AI - Yapay Zeka ile Konuş" />
+  <meta name="twitter:description" content="AI destekli sesli sohbet uygulaması ile gerçek zamanlı konuşma deneyimi yaşayın." />
+  <meta name="twitter:image" content="%PUBLIC_URL%/og-image.png" />
+  
+  <!-- Apple Touch Icon -->
+  <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+  
+  <!-- Manifest -->
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+  
+  <!-- Preconnect to External APIs for Performance -->
+  <link rel="preconnect" href="https://api.deepgram.com">
+  <link rel="preconnect" href="https://generativelanguage.googleapis.com">
+  <link rel="preconnect" href="https://api.elevenlabs.io">
+  
+  <!-- Material-UI Roboto Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Material-UI Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  
+  <title>🎙️ Sesli Chat AI - Yapay Zeka ile Konuş</title>
+  
+  <style>
+    /* Loading Screen Styles */
+    #initial-loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      font-family: 'Roboto', sans-serif;
+      color: white;
+    }
+    
+    #initial-loader .loader-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    #initial-loader .loader-text {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    
+    #initial-loader .loader-subtext {
+      font-size: 14px;
+      opacity: 0.8;
+      text-align: center;
+      max-width: 300px;
+    }
+    
+    /* Hide loader when React app loads */
+    .app-loaded #initial-loader {
+      opacity: 0;
+      transition: opacity 0.5s ease-out;
+      pointer-events: none;
+    }
+    
+    /* Basic body styles */
+    body {
+      margin: 0;
+      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 
+                   'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 
+                   'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: #f5f5f5;
+    }
+    
+    code {
+      font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 600px) {
+      #initial-loader .loader-text {
+        font-size: 16px;
+      }
+      
+      #initial-loader .loader-subtext {
+        font-size: 12px;
+        padding: 0 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <noscript>
+    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+      <h2>🚫 JavaScript Gerekli</h2>
+      <p>Bu uygulama çalışmak için JavaScript'in etkin olması gerekiyor.</p>
+      <p>Lütfen tarayıcınızda JavaScript'i etkinleştirin ve sayfayı yenileyin.</p>
+    </div>
+  </noscript>
+  
+  <!-- Initial Loading Screen -->
+  <div id="initial-loader">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">🎙️ Sesli Chat AI</div>
+    <div class="loader-subtext">
+      Yapay zeka destekli sesli sohbet uygulaması yükleniyor...
+    </div>
+  </div>
+  
+  <!-- React App Mount Point -->
+  <div id="root"></div>
+  
+  <script>
+    // Hide loader when React app loads
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        document.body.classList.add('app-loaded');
+        setTimeout(function() {
+          const loader = document.getElementById('initial-loader');
+          if (loader) {
+            loader.style.display = 'none';
+          }
+        }, 500);
+      }, 100);
+    });
+    
+    // Service Worker Registration (for PWA support)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('%PUBLIC_URL%/sw.js')
+          .then(function(registration) {
+            console.log('SW registered: ', registration);
+          }, function(registrationError) {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
+    
+    // Error handling for microphone permissions
+    window.addEventListener('error', function(e) {
+      if (e.message && e.message.includes('microphone')) {
+        console.warn('Mikrofon izin hatası yakalandı:', e.message);
+      }
+    });
+    
+    // Check for required browser features
+    function checkBrowserSupport() {
+      const requiredFeatures = {
+        'WebRTC': !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+        'WebSocket': !!(window.WebSocket || window.MozWebSocket),
+        'AudioContext': !!(window.AudioContext || window.webkitAudioContext),
+        'Fetch API': !!(window.fetch)
+      };
+      
+      const unsupported = Object.keys(requiredFeatures).filter(feature => !requiredFeatures[feature]);
+      
+      if (unsupported.length > 0) {
+        console.warn('Desteklenmeyen tarayıcı özellikleri:', unsupported);
+        const message = `Tarayıcınız şu özellikleri desteklemiyor: ${unsupported.join(', ')}. Lütfen güncel bir tarayıcı kullanın.`;
+        
+        // Show warning after a delay to ensure React hasn't loaded
+        setTimeout(() => {
+          if (!document.getElementById('root').hasChildNodes()) {
+            alert(message);
+          }
+        }, 3000);
+      }
+    }
+    
+    checkBrowserSupport();
+  </script>
+</body>
+</html>
