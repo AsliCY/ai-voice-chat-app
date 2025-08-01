@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#667eea" />
   
   <!-- SEO Meta Tags -->
   <meta name="description" content="AI destekli sesli sohbet uygulaması. Deepgram, Google Gemini ve ElevenLabs teknolojileri ile gerçek zamanlı konuşma deneyimi." />
@@ -62,16 +62,21 @@
       z-index: 9999;
       font-family: 'Roboto', sans-serif;
       color: white;
+      transition: opacity 0.5s ease-out;
+    }
+    
+    #initial-loader .loader-content {
+      text-align: center;
     }
     
     #initial-loader .loader-spinner {
-      width: 50px;
-      height: 50px;
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-top: 4px solid white;
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(255, 255, 255, 0.3);
+      border-top: 5px solid white;
       border-radius: 50%;
       animation: spin 1s linear infinite;
-      margin-bottom: 20px;
+      margin: 0 auto 30px;
     }
     
     @keyframes spin {
@@ -79,23 +84,52 @@
       100% { transform: rotate(360deg); }
     }
     
-    #initial-loader .loader-text {
-      font-size: 18px;
-      font-weight: 500;
+    #initial-loader .loader-title {
+      font-size: 32px;
+      font-weight: 600;
       margin-bottom: 10px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
     
-    #initial-loader .loader-subtext {
+    #initial-loader .loader-subtitle {
+      font-size: 16px;
+      font-weight: 400;
+      margin-bottom: 20px;
+      opacity: 0.9;
+    }
+    
+    #initial-loader .loader-description {
       font-size: 14px;
       opacity: 0.8;
       text-align: center;
-      max-width: 300px;
+      max-width: 400px;
+      line-height: 1.5;
+    }
+    
+    #initial-loader .loader-features {
+      margin-top: 30px;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+    
+    #initial-loader .loader-feature {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 12px;
+      opacity: 0.7;
+    }
+    
+    #initial-loader .loader-feature-icon {
+      font-size: 24px;
+      margin-bottom: 5px;
     }
     
     /* Hide loader when React app loads */
     .app-loaded #initial-loader {
       opacity: 0;
-      transition: opacity 0.5s ease-out;
       pointer-events: none;
     }
     
@@ -107,7 +141,8 @@
                    'Helvetica Neue', sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      background-attachment: fixed;
     }
     
     code {
@@ -115,33 +150,65 @@
     }
     
     /* Responsive design */
-    @media (max-width: 600px) {
-      #initial-loader .loader-text {
-        font-size: 16px;
+    @media (max-width: 768px) {
+      #initial-loader .loader-title {
+        font-size: 24px;
       }
       
-      #initial-loader .loader-subtext {
+      #initial-loader .loader-subtitle {
+        font-size: 14px;
+      }
+      
+      #initial-loader .loader-description {
         font-size: 12px;
         padding: 0 20px;
+      }
+      
+      #initial-loader .loader-features {
+        gap: 20px;
+      }
+      
+      #initial-loader .loader-spinner {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 20px;
       }
     }
   </style>
 </head>
 <body>
   <noscript>
-    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
-      <h2>🚫 JavaScript Gerekli</h2>
-      <p>Bu uygulama çalışmak için JavaScript'in etkin olması gerekiyor.</p>
-      <p>Lütfen tarayıcınızda JavaScript'i etkinleştirin ve sayfayı yenileyin.</p>
+    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif; background: white; min-height: 100vh; display: flex; flex-direction: column; justify-content: center;">
+      <h2 style="color: #f44336; margin-bottom: 20px;">🚫 JavaScript Gerekli</h2>
+      <p style="color: #666; margin-bottom: 15px;">Bu uygulama çalışmak için JavaScript'in etkin olması gerekiyor.</p>
+      <p style="color: #666;">Lütfen tarayıcınızda JavaScript'i etkinleştirin ve sayfayı yenileyin.</p>
     </div>
   </noscript>
   
   <!-- Initial Loading Screen -->
   <div id="initial-loader">
-    <div class="loader-spinner"></div>
-    <div class="loader-text">🎙️ Sesli Chat AI</div>
-    <div class="loader-subtext">
-      Yapay zeka destekli sesli sohbet uygulaması yükleniyor...
+    <div class="loader-content">
+      <div class="loader-spinner"></div>
+      <div class="loader-title">🎙️ Sesli Chat AI</div>
+      <div class="loader-subtitle">Yapay Zeka ile Konuş</div>
+      <div class="loader-description">
+        Deepgram, Google Gemini ve ElevenLabs teknolojileri ile 
+        gerçek zamanlı sesli sohbet deneyimi yükleniyor...
+      </div>
+      <div class="loader-features">
+        <div class="loader-feature">
+          <div class="loader-feature-icon">🎤</div>
+          <div>Ses Tanıma</div>
+        </div>
+        <div class="loader-feature">
+          <div class="loader-feature-icon">🤖</div>
+          <div>AI Yanıtlar</div>
+        </div>
+        <div class="loader-feature">
+          <div class="loader-feature-icon">🔊</div>
+          <div>Ses Sentezi</div>
+        </div>
+      </div>
     </div>
   </div>
   
@@ -150,8 +217,10 @@
   
   <script>
     // Hide loader when React app loads
+    let appLoadTimer;
+    
     window.addEventListener('load', function() {
-      setTimeout(function() {
+      appLoadTimer = setTimeout(function() {
         document.body.classList.add('app-loaded');
         setTimeout(function() {
           const loader = document.getElementById('initial-loader');
@@ -159,26 +228,28 @@
             loader.style.display = 'none';
           }
         }, 500);
-      }, 100);
+      }, 300);
     });
     
-    // Service Worker Registration (for PWA support)
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('%PUBLIC_URL%/sw.js')
-          .then(function(registration) {
-            console.log('SW registered: ', registration);
-          }, function(registrationError) {
-            console.log('SW registration failed: ', registrationError);
-          });
-      });
-    }
-    
-    // Error handling for microphone permissions
-    window.addEventListener('error', function(e) {
-      if (e.message && e.message.includes('microphone')) {
-        console.warn('Mikrofon izin hatası yakalandı:', e.message);
+    // Also hide loader when React renders (fallback)
+    const observer = new MutationObserver(function(mutations) {
+      const rootElement = document.getElementById('root');
+      if (rootElement && rootElement.children.length > 0) {
+        clearTimeout(appLoadTimer);
+        setTimeout(() => {
+          document.body.classList.add('app-loaded');
+          setTimeout(() => {
+            const loader = document.getElementById('initial-loader');
+            if (loader) loader.style.display = 'none';
+          }, 500);
+        }, 100);
+        observer.disconnect();
       }
+    });
+    
+    observer.observe(document.getElementById('root'), { 
+      childList: true, 
+      subtree: true 
     });
     
     // Check for required browser features
@@ -194,18 +265,35 @@
       
       if (unsupported.length > 0) {
         console.warn('Desteklenmeyen tarayıcı özellikleri:', unsupported);
-        const message = `Tarayıcınız şu özellikleri desteklemiyor: ${unsupported.join(', ')}. Lütfen güncel bir tarayıcı kullanın.`;
         
         // Show warning after a delay to ensure React hasn't loaded
         setTimeout(() => {
           if (!document.getElementById('root').hasChildNodes()) {
+            const message = `⚠️ Tarayıcı Uyumluluk Sorunu\n\nTarayıcınız şu özellikleri desteklemiyor:\n${unsupported.join(', ')}\n\nLütfen güncel bir tarayıcı (Chrome, Firefox, Safari, Edge) kullanın.`;
             alert(message);
           }
-        }, 3000);
+        }, 5000);
       }
     }
     
     checkBrowserSupport();
+    
+    // Error handling for microphone permissions
+    window.addEventListener('error', function(e) {
+      if (e.message && e.message.includes('microphone')) {
+        console.warn('Mikrofon izin hatası yakalandı:', e.message);
+      }
+    });
+    
+    // Console welcome message
+    console.log(
+      '%c🎙️ Sesli Chat AI', 
+      'color: #667eea; font-size: 20px; font-weight: bold;'
+    );
+    console.log(
+      '%cYapay zeka destekli sesli sohbet uygulamasına hoş geldiniz!', 
+      'color: #666; font-size: 12px;'
+    );
   </script>
 </body>
 </html>

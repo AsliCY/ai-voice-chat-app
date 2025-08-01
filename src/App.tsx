@@ -29,7 +29,8 @@ import {
   Refresh,
   BugReport,
   ExpandMore,
-  ExpandLess
+  ExpandLess,
+  Clear
 } from '@mui/icons-material';
 import WebSocketService from './services/WebSocketService';
 import AudioService from './services/AudioService';
@@ -102,14 +103,33 @@ function App() {
     };
   }, [isRecording]);
 
+  // Hide initial loader when React app is ready
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      document.body.classList.add('app-loaded');
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const addLog = (message: string) => {
-    const timestamp = new Date().toLocaleTimeString();
+    const timestamp = new Date().toLocaleTimeString('tr-TR');
     setDebugLogs(prev => [`${timestamp}: ${message}`, ...prev.slice(0, 49)]);
     console.log(message);
+  };
+
+  const clearLogs = () => {
+    setDebugLogs([]);
+    addLog('🧹 Debug logları temizlendi');
+  };
+
+  const clearMessages = () => {
+    setMessages([]);
+    addLog('💬 Konuşma geçmişi temizlendi');
   };
 
   const initializeServices = async () => {
@@ -122,7 +142,7 @@ function App() {
           setIsRecording(true);
           addLog('🎙️ Kayıt başladı');
         },
-        onRecordingStop: (audioData) => {
+        onRecordingStop: (audioData: Uint8Array) => {
           setIsRecording(false);
           addLog(`📁 Kayıt tamamlandı: ${audioData.length} bytes`);
           
@@ -135,7 +155,7 @@ function App() {
           
           handleAudioRecorded(audioData);
         },
-        onRecordingError: (error) => {
+        onRecordingError: (error: string) => {
           setIsRecording(false);
           addLog(`❌ Kayıt hatası: ${error}`);
           setError(error);
@@ -144,29 +164,29 @@ function App() {
 
       // WebSocket service callbacks
       wsService.current.setCallbacks({
-        onConnectionChange: (connected) => {
+        onConnectionChange: (connected: boolean) => {
           setIsConnected(connected);
           setCurrentStatus(connected ? 'Bağlandı' : 'Bağlantı kesildi');
           addLog(`🔌 Bağlantı durumu: ${connected ? 'Bağlandı' : 'Kesildi'}`);
         },
-        onTranscription: (text) => {
+        onTranscription: (text: string) => {
           addLog(`📝 Transkript: ${text}`);
           addMessage('user', text);
         },
-        onAIResponse: (text) => {
+        onAIResponse: (text: string) => {
           addLog(`🤖 AI Yanıtı: ${text}`);
           addMessage('ai', text);
           setIsLoading(false);
         },
-        onAudioResponse: (audioData) => {
+        onAudioResponse: (audioData: Uint8Array) => {
           addLog(`🔊 Ses yanıtı alındı: ${audioData.length} bytes`);
           playAudioResponse(audioData);
         },
-        onStatus: (status) => {
+        onStatus: (status: string) => {
           setCurrentStatus(status);
           addLog(`📊 Durum: ${status}`);
         },
-        onError: (error) => {
+        onError: (error: string) => {
           addLog(`❌ Hata: ${error}`);
           setError(error);
           setIsLoading(false);
@@ -265,7 +285,11 @@ function App() {
 
       setError(null);
       setIsLoading(true);
+      
+      // Kullanıcı mesajını hemen konuşma geçmişine ekle
+      addMessage('user', testText);
       addLog(`🧪 AI testi: ${testText}`);
+      
       wsService.current.testAI(testText);
       setTestText('');
     } catch (error) {
@@ -296,15 +320,6 @@ function App() {
     // En yeni mesajları sona ekle (düzgün kronolojik sıra)
     setMessages(prev => [...prev, message]);
   };
-
-  // Hide initial loader when React app is ready
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      document.body.classList.add('app-loaded');
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, []);
 
   const cleanup = () => {
     addLog('🧹 Temizlik yapılıyor...');
@@ -462,10 +477,13 @@ function App() {
         </Typography>
 
         {/* Test AI Section */}
-        <Card sx={{ mb: 3 }}>
+        <Card sx={{ mb: 3, borderRadius: 2 }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               🧪 AI Test
+              <Typography variant="caption" color="text.secondary">
+                (Yazılı test için)
+              </Typography>
             </Typography>
             <Box display="flex" gap={1}>
               <TextField
@@ -475,6 +493,7 @@ function App() {
                 value={testText}
                 onChange={(e) => setTestText(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleTestAI()}
+                disabled={isLoading}
               />
               <Button
                 variant="contained"
@@ -494,12 +513,22 @@ function App() {
             <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               💬 Konuşma Geçmişi
               {messages.length > 0 && (
-                <Chip 
-                  label={`${messages.length} mesaj`} 
-                  size="small" 
-                  color="primary" 
-                  variant="outlined" 
-                />
+                <>
+                  <Chip 
+                    label={`${messages.length} mesaj`} 
+                    size="small" 
+                    color="primary" 
+                    variant="outlined" 
+                  />
+                  <IconButton
+                    size="small"
+                    onClick={clearMessages}
+                    title="Konuşma geçmişini temizle"
+                    sx={{ ml: 'auto' }}
+                  >
+                    <Clear fontSize="small" />
+                  </IconButton>
+                </>
               )}
             </Typography>
             {messages.length === 0 ? (
@@ -508,7 +537,7 @@ function App() {
                   👋 Henüz konuşma yok
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
-                  Mikrofon butonuna tıklayarak konuşmaya başlayın veya aşağıdaki test alanını kullanın
+                  Mikrofon butonuna tıklayarak konuşmaya başlayın veya yukarıdaki test alanını kullanın
                 </Typography>
               </Box>
             ) : (
@@ -532,7 +561,8 @@ function App() {
                           '&:hover': {
                             bgcolor: message.type === 'user' ? 'primary.main' : 'secondary.main',
                             '& .MuiTypography-root': { color: 'white' }
-                          }
+                          },
+                          transition: 'all 0.2s ease'
                         }}
                       >
                         <ListItemText
@@ -557,10 +587,12 @@ function App() {
                             <Typography 
                               variant="body1" 
                               component="div" 
+                              className="message-text"
                               sx={{ 
                                 mt: 0.5,
                                 color: 'text.primary',
-                                lineHeight: 1.5
+                                lineHeight: 1.5,
+                                wordBreak: 'break-word'
                               }}
                             >
                               {message.text}
@@ -580,20 +612,49 @@ function App() {
         </Card>
 
         {/* Debug Panel */}
-        <Card>
+        <Card sx={{ borderRadius: 2 }}>
           <CardContent>
             <Box display="flex" alignItems="center" justifyContent="space-between">
-              <Typography variant="h6">
+              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 🐛 Debug Logları
+                {debugLogs.length > 0 && (
+                  <Chip 
+                    label={`${debugLogs.length} log`} 
+                    size="small" 
+                    color="info" 
+                    variant="outlined" 
+                  />
+                )}
               </Typography>
-              <IconButton onClick={() => setShowDebug(!showDebug)}>
-                {showDebug ? <ExpandLess /> : <ExpandMore />}
-              </IconButton>
+              <Box>
+                {debugLogs.length > 0 && (
+                  <IconButton 
+                    size="small" 
+                    onClick={clearLogs}
+                    title="Logları temizle"
+                    sx={{ mr: 1 }}
+                  >
+                    <Clear fontSize="small" />
+                  </IconButton>
+                )}
+                <IconButton onClick={() => setShowDebug(!showDebug)}>
+                  {showDebug ? <ExpandLess /> : <ExpandMore />}
+                </IconButton>
+              </Box>
             </Box>
             <Collapse in={showDebug}>
-              <Box sx={{ mt: 1, maxHeight: 200, overflow: 'auto', bgcolor: 'grey.100', p: 1, borderRadius: 1 }}>
+              <Box sx={{ 
+                mt: 1, 
+                maxHeight: 250, 
+                overflow: 'auto', 
+                bgcolor: 'grey.100', 
+                p: 2, 
+                borderRadius: 1,
+                border: '1px solid',
+                borderColor: 'grey.300'
+              }}>
                 {debugLogs.length === 0 ? (
-                  <Typography variant="body2" color="textSecondary">
+                  <Typography variant="body2" color="textSecondary" align="center">
                     Henüz log yok...
                   </Typography>
                 ) : (
@@ -602,13 +663,18 @@ function App() {
                       key={index}
                       variant="body2"
                       component="div"
+                      className="debug-logs"
                       sx={{ 
                         fontFamily: 'monospace', 
                         fontSize: '0.75rem', 
                         mb: 0.5,
+                        p: 0.5,
+                        borderRadius: 0.5,
+                        bgcolor: index === 0 ? 'info.light' : 'transparent',
                         color: log.includes('❌') ? 'error.main' : 
                                log.includes('✅') ? 'success.main' :
-                               log.includes('⚠️') ? 'warning.main' : 'text.primary'
+                               log.includes('⚠️') ? 'warning.main' : 'text.primary',
+                        wordBreak: 'break-all'
                       }}
                     >
                       {log}
