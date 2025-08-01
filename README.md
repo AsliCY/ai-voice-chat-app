@@ -67,8 +67,8 @@ A modern **real-time voice AI agent** that enables users to interact with AI thr
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd voice-chat-app
+   git clone https://github.com/AsliCY/ai-voice-chat-app.git
+   cd ai-voice-chat-app
    ```
 
 2. **Setup Python environment**
